@@ -1,22 +1,25 @@
 import React, { useEffect, useState } from "react";
 import { FavoriteBreed } from "./types";
-import { fetchFavoriteBreeds, fetchUserFavorites, toggleFavoriteBackend } from "./services/api";
+import { fetchFavoriteBreeds } from "./services/api";
 import CatCard from "./components/CatCard";
 import Filters from "./components/Filters";
 import Tabs from "./components/Tabs";
 import Modal from "./components/Modal";
 import "./App.css";
+import { useFavorites } from "./Context/FavoritesContext";
 
 function App() {
   const [activeTab, setActiveTab] = useState<"explorer" | "favorites">("explorer");
   const [breeds, setBreeds] = useState<FavoriteBreed[]>([]);
-  const [favorites, setFavorites] = useState<FavoriteBreed[]>([]);
   const [selectedBreed, setSelectedBreed] = useState<FavoriteBreed | null>(null);
   const [loading, setLoading] = useState(false);
 
   const [search, setSearch] = useState("");
   const [available, setAvailable] = useState("");
   const [sort, setSort] = useState("");
+
+  // Context de favoritos
+  const { favorites, toggleFavorite } = useFavorites();
 
   const getBreeds = async () => {
     setLoading(true);
@@ -30,32 +33,9 @@ function App() {
     }
   };
 
-  const getFavorites = async () => {
-    try {
-      const favs = await fetchUserFavorites();
-      setFavorites(favs);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
   useEffect(() => {
     getBreeds();
-    getFavorites();
-  }, []);
-
-  const toggleFavorite = async (breed: FavoriteBreed) => {
-    try {
-      await toggleFavoriteBackend(breed.id);
-      setFavorites((prev) => {
-        const isFav = prev.find((f) => f.id === breed.id);
-        if (isFav) return prev.filter((f) => f.id !== breed.id);
-        return [...prev, breed];
-      });
-    } catch (err) {
-      console.error(err);
-    }
-  };
+  }, [search, available, sort]);
 
   const filteredBreeds = breeds.filter((b) => {
     const matchesSearch = b.breed_name.toLowerCase().includes(search.toLowerCase());
