@@ -40,13 +40,15 @@ class FavoriteBreedListCreateAPIView(generics.ListCreateAPIView):
 
         return queryset
     
-    
 @api_view(["GET"])
 def get_user_favorites(request):
     user = User.objects.first()  
     favorites = UserFavorite.objects.filter(user=user).select_related("breed")
-    data = [f.breed for f in favorites]
-    return Response(data)
+    breeds = [f.breed for f in favorites]  
+
+    serializer = FavoriteBreedSerializer(breeds, many=True)  
+    return Response(serializer.data)
+
 
 
 @api_view(["POST"])
